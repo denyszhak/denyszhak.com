@@ -12,7 +12,7 @@ const About = () => {
         <div style={{ flex: '1', minWidth: '300px' }}>
           <h1 className="page-title" style={{ marginTop: 0 }}>hi,</h1>
           <p>
-            Most machine learning outputs are predictions someone reads. I work on the kind that moves physical equipment &mdash; at <a href="https://imubit.com/" target="_blank" rel="noopener noreferrer">Imubit</a>, I build the backend and platform around deep-learning controllers that run refineries in closed loop.
+            Most machine learning outputs are predictions someone reads. I work on the kind that moves physical equipment &ndash; at <a href="https://imubit.com/" target="_blank" rel="noopener noreferrer">Imubit</a>, I build the backend and platform around deep-learning controllers that run refineries in closed loop.
           </p>
           <p>
             I love engineering around serving, monitoring, and reliability. Lately my attention has widened to GPU inference, LLM serving, and keeping large models fast and observable under load.
@@ -24,8 +24,8 @@ const About = () => {
       <ul>
         <li>9 years building and operating data-intensive systems, the last five for ML</li>
         <li>Extensive experience in the Python ecosystem, 3 years of production Go, and a recent focus on Rust</li>
-        <li>20+ merged open-source contributions to AI infrastructure and developer tools &mdash; Ruff, Ty, Docker Model Runner and others</li>
-        <li>I studied Air Navigation at the National Aviation University in Kyiv &mdash; I picked up engineering along the way</li>
+        <li>20+ merged open-source contributions to AI infrastructure and developer tools &ndash; Ruff, Ty, Docker Model Runner and others</li>
+        <li>I studied Air Navigation at the National Aviation University in Kyiv &ndash; I picked up engineering along the way</li>
       </ul>
 
     </div>
