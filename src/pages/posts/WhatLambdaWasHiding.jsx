@@ -26,7 +26,7 @@ const WhatLambdaWasHiding = () => {
               <span className="post-tag">serverless</span>
             </div>
             <div className="article-meta">
-              <span>19/05/2026</span>
+              <span>18/06/2026</span>
               <span>•</span>
               <span>15 min read</span>
               <span>•</span>

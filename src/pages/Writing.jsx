@@ -4,7 +4,7 @@ import SubscribeForm from '../components/SubscribeForm';
 const Writing = () => {
   const posts = [
     {
-      date: "19/05/2026",
+      date: "18/06/2026",
       title: "What Lambda was hiding",
       slug: "what-lambda-was-hiding",
       tags: ["distributed systems", "serverless"]
