@@ -17,6 +17,9 @@ const About = () => {
           <p>
             I love engineering around serving, monitoring, and reliability. Lately my attention has widened to GPU inference, LLM serving, and keeping large models fast and observable under load.
           </p>
+          <p>
+            I write here occasionally &ndash; long-form, usually about engineering. Social links at the top if you want to find me elsewhere.
+          </p>
         </div>
       </div>
 
