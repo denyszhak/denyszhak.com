@@ -4,24 +4,6 @@ import SubscribeForm from '../components/SubscribeForm';
 const Writing = () => {
   const posts = [
     {
-      date: "14/06/2026",
-      title: "The model never writes the SQL",
-      slug: "the-model-never-writes-the-sql",
-      tags: ["LLMs", "SQL"]
-    },
-    {
-      date: "13/06/2026",
-      title: "What it's like to work on a language server",
-      slug: "what-its-like-to-work-on-a-language-server",
-      tags: ["Rust", "LSP"]
-    },
-    {
-      date: "13/06/2026",
-      title: "Canarying a pipeline you can't sample",
-      slug: "canarying-a-pipeline-you-cant-sample",
-      tags: ["distributed systems", "deployment"]
-    },
-    {
       date: "19/05/2026",
       title: "What Lambda was hiding",
       slug: "what-lambda-was-hiding",
