@@ -4,26 +4,23 @@ import { FiGithub, FiLinkedin, FiMail, FiSun, FiMoon } from 'react-icons/fi';
 import { FaXTwitter } from 'react-icons/fa6';
 
 const Navigation = () => {
-  const [isLightMode, setIsLightMode] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme !== 'dark';
+  });
 
   useEffect(() => {
-    // Check if user previously selected a theme
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      setIsLightMode(true);
+    if (isLightMode) {
       document.documentElement.classList.add('light-theme');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    setIsLightMode(!isLightMode);
-    if (!isLightMode) {
-      document.documentElement.classList.add('light-theme');
-      localStorage.setItem('theme', 'light');
     } else {
       document.documentElement.classList.remove('light-theme');
-      localStorage.setItem('theme', 'dark');
     }
+  }, [isLightMode]);
+
+  const toggleTheme = () => {
+    const newMode = !isLightMode;
+    setIsLightMode(newMode);
+    localStorage.setItem('theme', newMode ? 'light' : 'dark');
   };
 
   return (
