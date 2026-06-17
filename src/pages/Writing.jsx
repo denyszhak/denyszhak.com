@@ -7,7 +7,8 @@ const Writing = () => {
       date: "18/06/2026",
       title: "What Lambda was hiding",
       slug: "what-lambda-was-hiding",
-      tags: ["distributed systems", "serverless"]
+      tags: ["distributed systems", "serverless"],
+      tagline: "A class of bugs Lambda's runtime had been quietly absorbing – the migration to long-running containers exposed them."
     }
   ];
 
@@ -25,7 +26,12 @@ const Writing = () => {
               <span style={{ color: 'var(--text-secondary)', minWidth: '90px', paddingTop: '0.1rem' }}>{post.date}</span>
               <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <Link to={`/writing/${post.slug}`} className="post-title" style={{ textDecoration: 'none' }}>{post.title}</Link>
-                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem' }}>
+                {post.tagline && (
+                  <div style={{ marginTop: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                    {post.tagline}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.6rem' }}>
                   {post.tags.map(tag => (
                     <span key={tag} className="post-tag">{tag}</span>
                   ))}
