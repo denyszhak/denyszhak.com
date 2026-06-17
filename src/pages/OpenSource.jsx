@@ -42,7 +42,7 @@ const OpenSource = () => {
       githubUrl: "https://github.com/denyszhak/candle-oxide-kernels",
       description: (
         <>
-          A research project on replacing <a href="https://github.com/huggingface/candle" target="_blank" rel="noopener noreferrer">Candle</a>'s CUDA kernel crate with PTX generated from Rust via <a href="https://github.com/luminafoundation/cuda-oxide" target="_blank" rel="noopener noreferrer">cuda-oxide</a>, no fork of Candle required. The swap works on simple kernels (copy, fill, cast, affine), verified on a 4090, but doesn't yet extend to kernels using libdevice math (<code>exp</code>, <code>sin</code>, <code>sqrt</code>) — cuda-oxide compiles those to NVVM IR instead of PTX, which Candle's loader doesn't accept.
+          A research project on replacing <a href="https://github.com/huggingface/candle" target="_blank" rel="noopener noreferrer">Candle</a>'s CUDA kernel crate with PTX generated from Rust via <a href="https://github.com/luminafoundation/cuda-oxide" target="_blank" rel="noopener noreferrer">cuda-oxide</a>, no fork of Candle required. The swap works on simple kernels (copy, fill, cast, affine), verified on a 4090, but doesn't yet extend to kernels using libdevice math (<code>exp</code>, <code>sin</code>, <code>sqrt</code>) – cuda-oxide compiles those to NVVM IR instead of PTX, which Candle's loader doesn't accept.
         </>
       )
     }
