@@ -192,6 +192,11 @@ li {
 
 .work-desc {
   margin-bottom: 0.5rem;
+  color: #a8a8a8;
+}
+
+:root.light-theme .work-desc {
+  color: #555555;
 }
 
 /* Tools layout */
