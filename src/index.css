@@ -59,7 +59,7 @@ a:hover {
 
 /* Typography utilities */
 h1, h2, h3, h4 {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 1rem;
 }
@@ -87,7 +87,7 @@ p {
 
 .nav-link {
   color: var(--accent-color);
-  font-weight: 500;
+  font-weight: normal;
 }
 
 .nav-link.active {
@@ -154,7 +154,7 @@ li {
 .post-title {
   color: var(--accent-color);
   font-size: 1.15rem;
-  font-weight: 500;
+  font-weight: normal;
 }
 
 .post-title:hover {
