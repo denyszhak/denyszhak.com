@@ -1,0 +1,12 @@
+{
+  "redirects": [
+    {
+      "source": "/writing/what-lambda-was-hiding",
+      "destination": "/writing/what-aws-lambda-was-hiding",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
