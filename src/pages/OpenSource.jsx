@@ -5,7 +5,7 @@ const OpenSource = () => {
     {
       title: "Ruff & Ty",
       type: "Rust",
-      stars: "48.5k",
+      stars: "49.5k",
       githubUrl: "https://github.com/astral-sh/ruff",
       description: (
         <>
@@ -16,7 +16,7 @@ const OpenSource = () => {
     {
       title: "Docker Model Runner",
       type: "Go",
-      stars: "603",
+      stars: "615",
       githubUrl: "https://github.com/docker/model-runner",
       description: (
         <>
@@ -25,11 +25,20 @@ const OpenSource = () => {
       )
     },
     {
-      title: "Ghostty, fish-shell, SeaORM",
+      title: "GPU inference backends",
+      type: "Rust, Vulkan & ROCm",
+      description: (
+        <>
+          Bringing up LLM inference on non-NVIDIA GPUs across two stacks. Contributed the <a href="https://github.com/ericcurtin/vllm-vulkan/pull/10" target="_blank" rel="noopener noreferrer">Vulkan-backed decode attention path</a> to vllm-vulkan, GLSL kernels with online softmax and cooperative QK reduction over paged KV caches, with CPU fallback. Shipped the <a href="https://github.com/ericcurtin/inferrs/pull/248" target="_blank" rel="noopener noreferrer">ROCm backend</a> for inferrs, which loads HIP/hipBLAS at runtime with no ROCm toolchain needed at build, uses native hipBLAS matmul, and serves models on an MI300X.
+        </>
+      )
+    },
+    {
+      title: "Developer tooling",
       type: "Rust & Zig",
       description: (
         <>
-          Shipped cross-ecosystem improvements to popular developer tooling. E.g., fixed <a href="https://github.com/SeaQL/sea-orm/pull/2845" target="_blank" rel="noopener noreferrer">LEFT JOIN deserialization mappings</a> in SeaORM and improved <a href="https://github.com/fish-shell/fish-shell/commit/daa554123ffce7277fefbe52f6bb4547066242f9" target="_blank" rel="noopener noreferrer">conditional formatting logic</a> in the fish shell code formatter, and added <a href="https://github.com/ghostty-org/ghostty/pull/9551" target="_blank" rel="noopener noreferrer">fish-shell completions</a> while resolving a <a href="https://github.com/ghostty-org/ghostty/pull/9831" target="_blank" rel="noopener noreferrer">macOS UI bug</a> for the Ghostty terminal.
+          Across several projects, I fixed <a href="https://github.com/SeaQL/sea-orm/pull/2845" target="_blank" rel="noopener noreferrer">LEFT JOIN deserialization mappings</a> in SeaORM, improved <a href="https://github.com/fish-shell/fish-shell/commit/daa554123ffce7277fefbe52f6bb4547066242f9" target="_blank" rel="noopener noreferrer">conditional formatting logic</a> in the fish shell code formatter, and added <a href="https://github.com/ghostty-org/ghostty/pull/9551" target="_blank" rel="noopener noreferrer">fish-shell completions</a> while resolving a <a href="https://github.com/ghostty-org/ghostty/pull/9831" target="_blank" rel="noopener noreferrer">macOS UI bug</a> for the Ghostty terminal.
         </>
       )
     }

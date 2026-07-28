@@ -5,15 +5,7 @@ import { FaXTwitter } from 'react-icons/fa6';
 
 const Navigation = () => {
   const [isLightMode, setIsLightMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme === 'light';
-    }
-    // Default to system preference if no saved theme
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return false;
-    }
-    return true;
+    return localStorage.getItem('theme') !== 'dark';
   });
 
   useEffect(() => {
