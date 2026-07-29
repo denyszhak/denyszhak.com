@@ -16,7 +16,7 @@ const Writing = () => {
     <div>
       <h1 className="page-title">writing</h1>
       <p style={{ marginBottom: '2rem', color: 'var(--text-secondary)' }}>
-        Posts about systems engineering, observability, ML, and open source.
+        Notes from building and operating production systems.
       </p>
 
       <div className="post-list">
