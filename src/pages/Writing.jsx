@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
-import SubscribeForm from '../components/SubscribeForm';
+// import SubscribeForm from '../components/SubscribeForm';
 
 const Writing = () => {
   const posts = [
+    {
+      date: "11/08/2026",
+      title: "What counts as an unused variable in Python?",
+      slug: "what-counts-as-an-unused-variable-in-python",
+      tags: ["Python", "LSP"],
+      tagline: "How ty tracks reads across Python scopes to decide which local bindings your editor should dim."
+    },
     {
       date: "07/07/2026",
       title: "What AWS Lambda was hiding",
@@ -16,7 +23,7 @@ const Writing = () => {
     <div>
       <h1 className="page-title">writing</h1>
       <p style={{ marginBottom: '2rem', color: 'var(--text-secondary)' }}>
-        Notes from building and operating production systems.
+        Writing about systems I've built, operated, and contributed to, and what they taught me.
       </p>
 
       <div className="post-list">
@@ -46,7 +53,7 @@ const Writing = () => {
         </div>
       </div>
 
-      <SubscribeForm />
+      {/* <SubscribeForm /> */}
     </div>
   );
 };

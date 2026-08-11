@@ -5,7 +5,7 @@ const OpenSource = () => {
     {
       title: "Ruff & Ty",
       type: "Rust",
-      stars: "49.5k",
+      stars: "49k",
       githubUrl: "https://github.com/astral-sh/ruff",
       description: (
         <>
@@ -16,7 +16,7 @@ const OpenSource = () => {
     {
       title: "Docker Model Runner",
       type: "Go",
-      stars: "615",
+      stars: "620",
       githubUrl: "https://github.com/docker/model-runner",
       description: (
         <>
