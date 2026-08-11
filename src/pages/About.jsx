@@ -19,7 +19,7 @@ const About = () => {
             Most machine learning outputs are predictions someone reads. I work on the kind that moves physical equipment &ndash; at <a href="https://imubit.com/" target="_blank" rel="noopener noreferrer">Imubit</a>, I build the backend and platform around deep-learning controllers that run refineries in closed loop.
           </p>
           <p style={{ marginBottom: 0 }}>
-            I love engineering around serving, monitoring, and reliability. Lately my attention has widened to GPU inference. I write here occasionally about engineering. Social links at the top if you want to find me elsewhere.
+            I spend most of my time on serving, monitoring, and keeping production ML systems reliable. Recently I've been contributing to Ruff, ty, Docker Model Runner, and a couple of GPU inference projects using Vulkan and ROCm. I write here about problems I've run into and what I learned solving them.
           </p>
         </div>
       </div>
@@ -28,9 +28,14 @@ const About = () => {
       <ul>
         <li>9 years building and operating data-intensive systems, the last five for ML</li>
         <li>Extensive experience in the Python ecosystem, 3+ years of production Go, and a recent focus on Rust</li>
-        <li>open-source contributions to developer tools and AI infra &ndash; Ruff, Ty, Docker Model Runner and others</li>
+        <li>open-source contributions to developer tools and AI infra &ndash; Ruff, ty, Docker Model Runner and others</li>
         <li>I studied Air Navigation at the National Aviation University in Kyiv</li>
       </ul>
+
+      <h2 className="page-title" style={{ marginTop: '3rem' }}>contact</h2>
+      <p>
+        I'm always happy to hear from people working on distributed systems, ML infra, dev tools, or inference: <a href="mailto:denyszhak@gmail.com">denyszhak@gmail.com</a>.
+      </p>
 
     </div>
   );

@@ -3,13 +3,13 @@ import { FiGithub } from 'react-icons/fi';
 const OpenSource = () => {
   const contributions = [
     {
-      title: "Ruff & Ty",
+      title: "Ruff & ty",
       type: "Rust",
       stars: "49k",
       githubUrl: "https://github.com/astral-sh/ruff",
       description: (
         <>
-          Contributing <a href="https://github.com/astral-sh/ruff/pulls?q=is%3Apr+author%3Adenyszhak+sort%3Acomments-desc+is%3Aclosed" target="_blank" rel="noopener noreferrer">20+ pull requests</a> with major IDE-facing LSP features, parser optimizations, and type-checking fixes to Ruff and Ty, very fast Python tools written in Rust. E.g., implemented diagnostic rules to detect unused bindings, exposed unreachable code hints, and optimized AST parenthesized range handling.
+          Contributing <a href="https://github.com/astral-sh/ruff/pulls?q=is%3Apr+author%3Adenyszhak+sort%3Acomments-desc+is%3Aclosed" target="_blank" rel="noopener noreferrer">22 pull requests</a> with major IDE-facing LSP features, parser optimizations, and type-checking fixes to Ruff and ty, very fast Python tools written in Rust. E.g., implemented diagnostic rules to detect unused bindings, exposed unreachable code hints, and optimized AST parenthesized range handling.
         </>
       )
     },

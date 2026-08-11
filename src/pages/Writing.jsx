@@ -48,9 +48,6 @@ const Writing = () => {
           </div>
         ))}
 
-        <div style={{ marginTop: '3rem', textAlign: 'center', color: 'var(--text-secondary)', fontStyle: 'italic', letterSpacing: '0.05em' }}>
-          ...more coming soon
-        </div>
       </div>
 
       {/* <SubscribeForm /> */}
