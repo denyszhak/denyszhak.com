@@ -43,7 +43,7 @@ const WhatLambdaWasHiding = () => {
         </header>
 
         <p>
-          This is about a migration from Python Lambdas to long-running services. These weren't small handlers – each was a small application.
+          Earlier this year I finished six months of moving seven Python Lambdas into long-running services. Each was closer to a small application than a thin handler.
         </p>
         <p>
           The migration itself was not unusual. What was interesting was what fell out of it. Some bugs only exist in long-running processes. Others are not bugs until the runtime changes: decisions that were correct under Lambda’s model and wrong outside it. Lambda’s isolated, frequently recycled execution environments kept both kinds harmless. The services didn’t.
