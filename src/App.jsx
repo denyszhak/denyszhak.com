@@ -14,7 +14,7 @@ function App() {
           <Route index element={<About />} />
           <Route path="writing" element={<Writing />} />
           <Route path="writing/what-aws-lambda-was-hiding" element={<WhatLambdaWasHiding />} />
-          <Route path="writing/what-counts-as-an-unused-variable-in-python" element={<UnusedVariable />} />
+          <Route path="writing/how-a-python-type-checker-decides-a-variable-is-unused" element={<UnusedVariable />} />
           <Route path="open-source" element={<OpenSource />} />
         </Route>
       </Routes>

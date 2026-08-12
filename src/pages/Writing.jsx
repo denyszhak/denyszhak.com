@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 const Writing = () => {
   const posts = [
     {
-      date: "11/08/2026",
-      title: "What counts as an unused variable in Python?",
-      slug: "what-counts-as-an-unused-variable-in-python",
-      tags: ["Python", "LSP"],
-      tagline: "How ty tracks reads across Python scopes to decide which local bindings your editor should dim."
+      date: "12/08/2026",
+      title: "How a Python type checker decides a variable is unused",
+      slug: "how-a-python-type-checker-decides-a-variable-is-unused",
+      tags: ["Python", "LSP", "ty"],
+      tagline: "ty tracks reads across Python scopes to decide which local bindings your editor should dim."
     },
     {
       date: "07/07/2026",
