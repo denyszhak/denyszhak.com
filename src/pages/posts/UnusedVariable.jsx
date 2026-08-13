@@ -127,16 +127,13 @@ print(x)`}</code></pre>
         </p>
 
         <p>
-          I added a parallel boolean table* indexed by ty's existing definition IDs. Every entry starts as <code>false</code>. When use-def records a read, each definition that can provide the value gets marked as used.
+          I added a parallel boolean table indexed by ty's existing definition IDs. Every entry starts as <code>false</code>. When use-def records a read, each definition that can provide the value gets marked as used.
         </p>
 
         <p>
           The unused-binding collector now starts from the definitions use-def never marked and filters by scope and definition kind. It no longer decides for itself whether a definition has a read. The separate AST traversal went away, and the result derives from the same name-resolution data type inference consumes.
         </p>
 
-        <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>
-          * Three months later, Charlie Marsh <a href="https://github.com/astral-sh/ruff/pull/26019" target="_blank" rel="noopener noreferrer">moved usage into the retained definition state</a>. A compile-time assertion keeps the combined enum the same size as the old one, and the retained map dropped one allocation and one byte per definition.
-        </p>
 
         <h2>A read can cross several scopes</h2>
 
