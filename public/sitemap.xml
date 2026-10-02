@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.denyszhak.com/</loc>
+  </url>
+  <url>
+    <loc>https://www.denyszhak.com/writing</loc>
+  </url>
+  <url>
+    <loc>https://www.denyszhak.com/writing/what-aws-lambda-was-hiding</loc>
+  </url>
+  <url>
+    <loc>https://www.denyszhak.com/writing/how-a-python-type-checker-decides-a-variable-is-unused</loc>
+  </url>
+  <url>
+    <loc>https://www.denyszhak.com/writing/a-checkpoint-in-the-middle-of-an-insert</loc>
+  </url>
+  <url>
+    <loc>https://www.denyszhak.com/open-source</loc>
+  </url>
+</urlset>

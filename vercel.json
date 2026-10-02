@@ -1,0 +1,17 @@
+{
+  "redirects": [
+    {
+      "source": "/writing/what-lambda-was-hiding",
+      "destination": "/writing/what-aws-lambda-was-hiding",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/writing", "destination": "/writing/index.html" },
+    { "source": "/writing/a-checkpoint-in-the-middle-of-an-insert", "destination": "/writing/a-checkpoint-in-the-middle-of-an-insert/index.html" },
+    { "source": "/writing/what-aws-lambda-was-hiding", "destination": "/writing/what-aws-lambda-was-hiding/index.html" },
+    { "source": "/writing/how-a-python-type-checker-decides-a-variable-is-unused", "destination": "/writing/how-a-python-type-checker-decides-a-variable-is-unused/index.html" },
+    { "source": "/open-source", "destination": "/open-source/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
