@@ -41,7 +41,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>This post represents what I would have loved to have as a reference before starting one of these migrations: moving 7 Python Lambdas into services on k8s. Having it would have made the transition smoother and more predictable.</p>
 
-        <p>Building serverful or serverless systems, which include Lambdas, is complex enough from the start, let alone moving between them. Lambdas come with particular limits, like memory, execution time, ephemeral storage, and concurrency, and some are simply runtime behaviour, like recycling environments. These are what you could consider first-order characteristics of the system. There are also second-order characteristics, or what I'll call promises, which you should infer from the nature of your application and the transition. For example, Lambda recycles environments, so nothing lives long enough to go bad. Our code could have reused database engines or refreshed credentials, but it was never required to. In a long-running service, both became issues.</p>
+        <p>Lambdas come with particular limits, like memory, execution time, ephemeral storage, and concurrency, and some are simply runtime behaviour, like recycling environments. These are what you could consider first-order characteristics of the system. There are also second-order characteristics, or what I'll call promises, which you should infer from the nature of your application and the transition. For example, Lambda recycles environments, so nothing lives long enough to go bad. Our code could have reused database engines or refreshed credentials, but it was never required to. In a long-running service, both became issues.</p>
 
         <h2 id="the-old-architecture-briefly">The old architecture, briefly</h2>
 
@@ -86,7 +86,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>We'd been making those same calls on Lambda for years. Each concurrent delivery had its own environment, so waiting for the database didn't hold up the others. Once deliveries shared an event loop in the service, they all had to wait.</p>
 
-        <p>We moved the database writes to a thread pool and stopped seeing the restarts. CSV parsing and pandas resampling were also running on the loop, so we moved those to threads too. <strong>Async code is only as async as its slowest sync call.</strong></p>
+        <p>We moved the database writes to a thread pool and stopped seeing the restarts. CSV parsing and pandas resampling were also running on the loop, so we moved those to threads too. Async code is only as async as its slowest sync call.</p>
 
         <p>When reviewing the handlers, follow the calls into the database drivers and SDKs as well, especially those without async versions. For testing, leave the liveness probes enabled and run the service under load. Enabling asyncio debug mode also helps here. By default, it logs callbacks and task steps that take longer than 100 ms, giving you somewhere to start looking.</p>
 
