@@ -16,7 +16,6 @@ const Navigation = () => {
         ? <span key={path} className="nav-current" aria-current="page">{label}</span>
         : <Link key={path} to={path}>{label}</Link>
     )),
-    <a key="github" href="https://github.com/denyszhak" target="_blank" rel="noopener noreferrer">github</a>,
     <a key="email" href="mailto:denyszhak@gmail.com">email</a>,
   ];
 
