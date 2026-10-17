@@ -25,7 +25,7 @@ const Writing = () => {
     },
     {
       date: "7 Jul 2026",
-      title: "What AWS Lambda was hiding",
+      title: "Runtime Promises, Part 1 - What AWS Lambda Was Hiding",
       slug: "what-aws-lambda-was-hiding",
       category: "work",
       tags: ["distributed systems", "serverless"],
