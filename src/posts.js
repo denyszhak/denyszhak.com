@@ -1,5 +1,5 @@
 // Newest first: the writing list and the homepage's recent posts read this order.
-export const postCategories = ['all', 'work', 'open source', 'research'];
+export const postCategories = ['all', 'work', 'open source'];
 
 export const posts = [
   {
