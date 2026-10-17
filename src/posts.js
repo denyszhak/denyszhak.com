@@ -1,4 +1,4 @@
-// Newest first: the writing list, the homepage's recent posts, and the footer date read this order.
+// Newest first: the writing list and the homepage's recent posts read this order.
 export const postCategories = ['all', 'work', 'open source', 'research'];
 
 export const posts = [
