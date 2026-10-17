@@ -1,44 +1,74 @@
+import { Link } from 'react-router-dom';
+import { posts } from '../posts';
+
+const tldr = [
+  ['Experience.', '9 years building data-intensive systems, the last five for ML.'],
+  ['Languages.', 'Extensive experience in the Python ecosystem, 3+ years of production Go, and a recent focus on Rust.'],
+  ['Open source.', 'Contributions to developer tools and AI infra – ty, Ruff and others.'],
+  ['Background.', 'I studied Air Navigation at the National Aviation University in Kyiv.'],
+];
+
+const ExternalLink = ({ href, children }) => (
+  <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+);
+
 const About = () => {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2.5rem', flexWrap: 'wrap' }}>
-        <div style={{ flexShrink: 0, marginTop: '0.4rem' }}>
-          <img
-            src="/photo.jpg"
-            alt="Denys"
-            style={{ width: '180px', height: '180px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-color)', display: 'block' }}
-          />
-        </div>
-        <div style={{ flex: '1', minWidth: '300px' }}>
-          <h1 className="page-title" style={{ marginTop: 0, marginBottom: '0.4rem' }}>Denys Zhak</h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>software engineer &middot; distributed systems &amp; ML infra</p>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.4rem' }}>
-            currently at <a href="https://imubit.com/" target="_blank" rel="noopener noreferrer">Imubit</a> &nbsp;&middot;&nbsp; <a href="https://github.com/denyszhak" target="_blank" rel="noopener noreferrer">github</a>
-          </p>
-          <p>
-            Most machine learning outputs are predictions someone reads. I work on the kind that moves physical equipment &ndash; at <a href="https://imubit.com/" target="_blank" rel="noopener noreferrer">Imubit</a>, I build the on-prem application and cloud platform around deep-learning controllers that run refineries in closed loop.
-          </p>
-          <p style={{ marginBottom: 0 }}>
-            I enjoy building predictable and reliable systems in the first place.
-            <br />
-            Over the past year, I've also been contributing to open source, which you can check out on <a href="https://www.denyszhak.com/open-source">this page</a>. I write here about whatever piques my engineering curiosity, problems I've run into, and what I learned solving them.
-          </p>
-        </div>
-      </div>
-
-      <h2 className="page-title" style={{ marginTop: '3rem' }}>tl;dr</h2>
-      <ul>
-        <li>9 years building data-intensive systems, the last five for ML</li>
-        <li>Extensive experience in the Python ecosystem, 3+ years of production Go, and a recent focus on Rust</li>
-        <li>open-source contributions to developer tools and AI infra &ndash; ty, Ruff and others</li>
-        <li>I studied Air Navigation at the National Aviation University in Kyiv</li>
-      </ul>
-
-      <h2 className="page-title" style={{ marginTop: '3rem' }}>contact</h2>
+      <h1 className="visually-hidden">Denys Zhak</h1>
+      <img className="profile-photo" src="/photo.jpg" alt="Denys Zhak" />
+      <p className="muted">
+        software engineer &middot; distributed systems &amp; ML infra &middot; currently at <ExternalLink href="https://imubit.com/">Imubit</ExternalLink>
+      </p>
       <p>
-        I'm always happy to hear from people working on distributed systems, ML infra, dev tools, or inference: <a href="mailto:denyszhak@gmail.com">denyszhak@gmail.com</a>.
+        Most machine learning outputs are predictions someone reads. I work on the kind that moves physical equipment &ndash; at <ExternalLink href="https://imubit.com/">Imubit</ExternalLink>, I build the on-prem application and cloud platform around deep-learning controllers that run refineries in closed loop.
+      </p>
+      <p>
+        I enjoy building predictable and reliable systems in the first place. Over the past year, I've also been contributing to open source, which you can check out on <Link to="/open-source">this page</Link>. I write here about whatever piques my engineering curiosity, problems I've run into, and what I learned solving them.
       </p>
 
+      <h2>Recent writing</h2>
+      <table className="post-table">
+        <tbody>
+          {posts.map((post) => (
+            <tr key={post.slug}>
+              <td className="post-date">{post.date}</td>
+              <td><Link to={`/writing/${post.slug}`}>{post.title}</Link></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="more-link"><Link to="/writing">all writing &rarr;</Link></p>
+
+      <h2>tl;dr</h2>
+      <ul className="labeled-list">
+        {tldr.map(([label, text]) => (
+          <li key={label}><strong>{label}</strong> {text}</li>
+        ))}
+      </ul>
+
+      <h2>Contact</h2>
+      <p>I'm always happy to hear from people working on distributed systems, ML infra, dev tools, or inference.</p>
+      <table className="contact-table">
+        <tbody>
+          <tr>
+            <td className="contact-key">email</td>
+            <td><a href="mailto:denyszhak@gmail.com">denyszhak@gmail.com</a></td>
+          </tr>
+          <tr>
+            <td className="contact-key">github</td>
+            <td><ExternalLink href="https://github.com/denyszhak">github.com/denyszhak</ExternalLink></td>
+          </tr>
+          <tr>
+            <td className="contact-key">linkedin</td>
+            <td><ExternalLink href="https://www.linkedin.com/in/denyszhak/">linkedin.com/in/denyszhak</ExternalLink></td>
+          </tr>
+          <tr>
+            <td className="contact-key">x</td>
+            <td><ExternalLink href="https://x.com/denyszhak_">@denyszhak_</ExternalLink></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 };
