@@ -23,7 +23,7 @@ const WhatLambdaWasHiding = () => {
             <div className="article-meta">
               <span>7 Jul 2026</span>
               <span>•</span>
-              <span>18 min read</span>
+              <span>17 min read</span>
               <span>•</span>
               <button
                 onClick={like}
@@ -37,9 +37,9 @@ const WhatLambdaWasHiding = () => {
           </div>
         </header>
 
-        <p>Since August 2025, I've done four production migrations of different kinds, with 2 major ones changing the product runtime.</p>
+        <p>Since August 2025, I've done four production migrations of different kinds, with two major ones changing the product runtime.</p>
 
-        <p>This post represents what I would have loved to have as a reference before starting one of these migrations: moving 7 Python Lambdas into services on k8s. Having it would have made the transition smoother and more predictable.</p>
+        <p>This post represents what I would have loved to have as a reference before starting one of these migrations: moving seven Python Lambdas into services on k8s. Having it would have made the transition smoother and more predictable.</p>
 
         <p>Lambdas come with particular limits, like memory, execution time, ephemeral storage, and concurrency, and some are simply runtime behaviour, like recycling environments. These are what you could consider first-order characteristics of the system. There are also second-order characteristics, or what I'll call promises, which you should infer from the nature of your application and the transition. For example, Lambda recycles environments, so nothing lives long enough to go bad. Our code could have reused database engines or refreshed credentials, but it was never required to. In a long-running service, both became issues.</p>
 
@@ -53,7 +53,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>We rewrote the extraction service in Go. Static typing there was important for us in that piece of functionality, and since the rest of the platform is in Go, we could reuse internal libraries we already had.</p>
 
-        <p>Consumers depend on pandas, the Python ecosystem and our internal libraries, rewriting them too would have made the migration longer and less predictable, so we kept them in Python.</p>
+        <p>Consumers depend on pandas, the Python ecosystem and our internal libraries. Rewriting them too would have made the migration longer and less predictable, so we kept them in Python.</p>
 
         <p>We didn't clean up any code while moving it unless the migration needed it. We rolled it out through a staged canary, starting with test and anonymous traffic.</p>
 
@@ -72,7 +72,7 @@ const WhatLambdaWasHiding = () => {
 
         <h2 id="promise-1-blocking-only-hurt-the-caller">Promise 1: Blocking only hurt the caller</h2>
 
-        <p>Each Lambda invocation runs in a dedicated execution environment. It might be reused after a particular request has finished, but concurrent requests don't reuse the environment and run in independent environments.</p>
+        <p>Each Lambda invocation runs in its own execution environment. Concurrent requests never share one.</p>
 
         <p>We have four different types of consumers, and by the time we finished the rollout of the first, we were somewhat confident that the second wouldn't give us much trouble.</p>
 
@@ -80,11 +80,11 @@ const WhatLambdaWasHiding = () => {
 
         <div style={{ margin: '2rem 0', textAlign: 'center' }}><img src="/k8s-liveness-events.png" alt="Kubernetes events showing failed liveness probes timing out while awaiting response headers and restarting the container" style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', border: '1px solid var(--border-color)' }} /></div>
 
-        <p>The probe error ends with <code>Client.Timeout exceeded while awaiting headers</code>. The request reached the service, but no response came back before the timeout.</p>
+        <p>The probe error ends with <code>Client.Timeout exceeded while awaiting headers</code>. The probe timed out waiting for response headers.</p>
 
-        <p>The issue lay in a synchronous database client called from async handlers. They usually took seconds to finish, that blocked the event loop for their whole duration. The service couldn't answer the liveness probe until the write finished.</p>
+        <p>The issue lay in a synchronous database client called from async handlers. Client calls usually took seconds to finish and blocked the event loop for their whole duration. The service couldn't answer the liveness probe until the write finished.</p>
 
-        <p>We'd been making those same calls on Lambda since the beginning. Each concurrent delivery had its own environment, so waiting for the database didn't hold up the others. Once deliveries shared an event loop in the service, they all had to wait.</p>
+        <p>On Lambda those same calls were fine: each delivery had its own environment, so a slow database write only blocked itself. Once deliveries shared an event loop, they all had to wait.</p>
 
         <p>We offloaded those database writes to a thread pool and stopped seeing the restarts. The same applied to CSV parsing and pandas resampling. Async code is only as async as its slowest sync call.</p>
 
@@ -92,7 +92,7 @@ const WhatLambdaWasHiding = () => {
 
         <h2 id="promise-2-every-delivery-had-the-place-to-itself">Promise 2: Every delivery had the place to itself</h2>
 
-        <p>On Lambda, each execution environment has its own memory, CPU and <code>/tmp</code>. In the service, deliveries no longer had the place to themselves.</p>
+        <p>On Lambda each delivery also had its own memory, CPU, and <code>/tmp</code>. In the service they share the pod’s limits.</p>
 
         <p>Once the second consumer was stable under normal traffic, we triggered a DLQ replay to process failed messages in batches. The container OOMed and restarted. As the replay continued, each new batch caused the same failure.</p>
 
@@ -100,7 +100,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>All our Python consumers were configured the same way: same pod count, same processes per pod, same prefetch count per process (we use RabbitMQ). We set concurrency to roughly match Lambda's concurrency, and this had worked for the first consumer.</p>
 
-        <p>However, isolation didn't transfer. On Lambda, each concurrent invocation had its own memory budget. In the service, all deliveries in a pod share the pod's memory limit. The second consumer did much more work per delivery than the first. It had more bytes in flight with larger pandas dataframes and more database calls. Under normal traffic, the prefetch never filled. The DLQ replay filled it instantly, and the pod ran out of memory. There is also quite an interesting relation to the fix from Promise 1. It made this easier to hit: with blocking calls off the event loop, each process could run more of this work at the same time.</p>
+        <p>However, isolation didn't transfer. The second consumer did much more work per delivery than the first. It had more bytes in flight with larger pandas dataframes and more database calls. Under normal traffic, the prefetch never filled. The DLQ replay filled it instantly, and the pod ran out of memory. Fixing Promise 1 made this easier to hit: with blocking calls off the event loop, each process could run more of this work at the same time.</p>
 
         <p>To size prefetch, you need the peak additional memory one large delivery uses. Lambda's REPORT line includes Max Memory Used, but when invocations share an environment, it reports the maximum across all of them. So use a large delivery that ran first in a fresh environment (its REPORT line includes Init Duration), and subtract the function's memory right after init, which you can log at the end of the init code. Use this number, not the function's configured memory size, which is only a ceiling, and be sure to validate it in the service under load.</p>
 
@@ -132,7 +132,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>The first Lambda we migrated created a SQLAlchemy engine per request instead of reusing one across invocations. We corrected that during the migration but missed similar calls inside our internal library, which created several engines on every delivery.</p>
 
-        <p>At first sight, this didn't seem like a big problem, since they all disposed of their engines at the end. But this wasn't the first time we'd dealt with memory quirks in Python, so we had a sense of what was going on.</p>
+        <p>At first sight, this didn't seem like a big problem, since they all disposed of their engines at the end.</p>
 
         <p><code>tracemalloc</code> pointed at SQLAlchemy early on. We replayed 51 deliveries against the old version, and they created a bit more than 1,000 engines. None of them were alive after garbage collection, but the process still held about 485 MiB of resident memory (RSS). glibc, the C library that allocates memory for our process, reported only 54 MiB in use. Another 169 MiB was free, but glibc hadn't returned it to Linux. When we called <code>malloc_trim()</code> to give free pages back, RSS dropped by 151 MiB.</p>
 
@@ -148,7 +148,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>We called these credentials "static" to distinguish them from the short-lived ones. We'd already added periodic refresh for the short-lived credentials by that time, but overlooked the static ones. Of course they were also rotated, a month was just much longer than anything we tested.</p>
 
-        <p>Restarting the pod is the immediate fix since it fetched the current credentials. We then added a background task to refresh them while the service was running. Our Lambdas didn't live for this long to expose the problem.</p>
+        <p>Restarting the pod was the immediate fix because it fetched the current credentials. We then added a background task to refresh them while the service was running. We hadn't seen this on Lambda, where recycling the environment also refreshed the credentials.</p>
 
         <p>Before the migration, analyze whether the code creates new engines, clients and sessions on every delivery when it could reuse them. Ask what happens when credentials, tokens, signed URLs or certificates expire while the service is still running.</p>
 
@@ -158,7 +158,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>Our code barely changed in the migration, so it's easy to consider that you are the same client for the upstream services. On Lambda, in our setup, the calls to upstream came from at least three source addresses, and if a call failed, Lambda retried the whole invocation. After the migration, the same calls came from a couple of pods running many deliveries at once, and retries were up to us.</p>
 
-        <p>While moving customers over, calls to one of our internal services started failing with <code>ServerDisconnectedError</code>, signalling that the connection closed before we got a response. Our first thought was to add retries, these looked like occasional disconnects.</p>
+        <p>While moving customers over, calls to one of our internal services started failing with <code>ServerDisconnectedError</code>, signalling that the connection closed before we got a response. Our first thought was to add retries, because these looked like occasional disconnects.</p>
 
         <p>We tried moving customers back and forth between Lambda and the service, and found the errors appeared only once more than half were on the service. Lambda didn't show any errors at any split.</p>
 
@@ -178,19 +178,15 @@ const WhatLambdaWasHiding = () => {
 
         <p>So check whether HTTP clients reuse connections, what limits their pools have and when the upstream starts its timeouts. Ideally, test it with the concurrency you expect in production. Also check whether the network path or source addresses will change, especially if the upstream uses per-IP limits or allowlists.</p>
 
-        <p>Also check Lambda logs for deliveries that failed but eventually succeeded when Lambda retried the invocation. The service won't give you that by default, so if you relied on it, add retries where the call is made.</p>
-
         <h2 id="how-to-make-it-reliable">How to make it reliable</h2>
 
-        <p>Local testing is the obvious first step. The e2e tests we started with passed, including concurrent deliveries, so it's worth also testing the conditions that changed with the runtime.</p>
+        <p>The e2e tests we started with passed, including concurrent deliveries, so it's worth also testing the conditions that changed with the runtime.</p>
 
         <p>For Python, you can run the service under load with <a href="https://docs.python.org/3/library/asyncio-dev.html" target="_blank" rel="noopener noreferrer">asyncio debug mode</a> enabled and the same liveness probes you intend to use in production.</p>
 
-        <p>Also ensure that you allocate enough time for the service to run and potentially expose some quirks. Our memory problem took one to two days to show up, so a few hours in staging wouldn't have been enough. Leave the service running with traffic comparable to prod and watch its memory and error logs over time. How long to do this depends on the workflow and how expensive a failure would be to recover from.</p>
+        <p>Our memory problem took one to two days to show up, so a few hours in staging wouldn't have been enough. Leave the service running with traffic comparable to prod and watch its memory and error logs over time. How long to do this depends on the workflow and how expensive a failure would be to recover from.</p>
 
-        <p>A good thing is to also test what happens at the boundaries: queues, databases, upstream services and anything providing credentials. Simulate dropping connections or making responses take longer. See what happens when the same work arrives again.</p>
-
-        <p>For queues, it can be a DLQ replay. For us, usual traffic never filled the prefetch buffer, but replay filled it immediately. Don't wait until you need a production replay to find out whether the service can handle it.</p>
+        <p>A good thing is to also test what happens at the boundaries: queues, databases, upstream services and anything providing credentials. For queues, it can be a DLQ replay. Don't wait until you need a production replay to find out whether the service can handle it.</p>
 
         <p>For credentials that rotate periodically, trigger a rotation during the test and check that the service can open new connections afterwards. Also check reconnecting after an existing connection is lost.</p>
 
@@ -200,21 +196,17 @@ const WhatLambdaWasHiding = () => {
 
         <p>A canary rollout doesn't require that. At any given moment, you will still have the same amount of total traffic. It will just be distributed between the old and new systems. You move part of the traffic over, watch its behaviour and move it back if needed. That's the approach we used.</p>
 
-        <p>A canary doesn't have to use an off-the-shelf tool. A small implementation can be enough, especially when you only need it for the migration. Our routing was controlled by a config file in S3. It mapped customers to pipelines and consumers, so one customer could use pipeline A with consumers A and B, while another used pipeline B with consumers C and D. For our rollout, controlling which pipeline processed each delivery was enough. If traffic assigned to the old system must never reach the new service, the routing decision needs to happen upstream, before that traffic enters the service.</p>
+        <p>A canary doesn't have to use an off-the-shelf tool. Our routing was controlled by a config file in S3. It mapped customers to pipelines and consumers, so one customer could use pipeline A with consumers A and B, while another used pipeline B with consumers C and D. For our rollout, controlling which pipeline processed each delivery was enough. If traffic assigned to the old system must never reach the new service, the routing decision needs to happen upstream, before that traffic enters the service.</p>
 
         <h2 id="lambda-as-a-runtime-contract">Lambda as a runtime contract</h2>
 
-        <p>This post is not a pitch against Lambda, it kept its promises. The trouble only started when we moved to services.</p>
-
-        <p>This migration simply highlighted that Lambda is a runtime contract, not just a deployment target. Concurrent deliveries had separate memory and filesystems, and each environment had its own pools and caches. Lambda handled retries for asynchronous invocations. In our case, environments were also recycled before the memory growth or monthly credential rotation caused visible problems. Most of this is documented somewhere –&nbsp;<a href="https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html" target="_blank" rel="noopener noreferrer">the filesystem and memory isolation</a>, even the Lambda retries. Some of it isn't, like your environment getting its own pools and caches. But none of it is gathered into the one list that matters – the set of guarantees your code is&nbsp;<a href="https://www.hyrumslaw.com/" target="_blank" rel="noopener noreferrer">quietly relying on</a>.</p>
+        <p>This migration highlighted that Lambda is a runtime contract, not just a deployment target. Concurrent deliveries had separate memory and filesystems, and each environment had its own pools and caches. Lambda handled retries for asynchronous invocations. In our case, environments were also recycled before the memory growth or monthly credential rotation caused visible problems. Most of this is documented somewhere –&nbsp;<a href="https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html" target="_blank" rel="noopener noreferrer">the filesystem and memory isolation</a>, even the Lambda retries. Some of it isn't, like your environment getting its own pools and caches. But none of it is gathered into the one list that matters – the set of guarantees your code is&nbsp;<a href="https://www.hyrumslaw.com/" target="_blank" rel="noopener noreferrer">quietly relying on</a>.</p>
 
         <p>Code written under that contract can rely on it, ignoring many best practices. The reliance shows up as missing code, and when the contract changes, the absences become bugs.</p>
 
         <p>The <a href="https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/" target="_blank" rel="noopener noreferrer">Law of Leaky Abstractions</a> says what's underneath your abstraction eventually shows through. With Lambda, it went the other way. Our bugs disappeared into the runtime. Lambda gave us fewer reasons to look at these parts of the code, but they still needed attention.</p>
 
         <p>Before migrating, list what the current runtime provides out of the box for your code. Then check those assumptions against the new runtime to see what needs to change. Appendix A puts the checks from the four promises into one list.</p>
-
-        <p>Most of the handler code had run on Lambda for years and moved over unchanged. We should have reused the engines on Lambda too, but the memory growth only caused restarts once we moved to services. We also had to lower prefetch because all the deliveries running in a pod now had to fit within its memory limit.</p>
 
         <h2 id="appendix-a-checklist">Appendix A: Checklist</h2>
 
