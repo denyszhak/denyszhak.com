@@ -250,6 +250,8 @@ button {
 }
 
 .article-content {
+  /* One column for prose, code, images and tables, so they share a right edge. */
+  max-width: 43rem;
   font-size: 15px;
 }
 
@@ -294,7 +296,6 @@ button {
 .article-content ul,
 .article-content ol,
 .article-content blockquote {
-  max-width: 68ch;
   margin-bottom: 1.2em;
 }
 
