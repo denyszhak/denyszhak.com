@@ -23,7 +23,7 @@ const WhatLambdaWasHiding = () => {
             <div className="article-meta">
               <span>7 Jul 2026</span>
               <span>•</span>
-              <span>19 min read</span>
+              <span>18 min read</span>
               <span>•</span>
               <button
                 onClick={like}
@@ -82,13 +82,13 @@ const WhatLambdaWasHiding = () => {
 
         <p>The probe error ends with <code>Client.Timeout exceeded while awaiting headers</code>. The request reached the service, but no response came back before the timeout.</p>
 
-        <p>The database writes were synchronous, even though we called them from async handlers. They could take seconds to finish, and the event loop was blocked the whole time. The service couldn't answer the liveness probe until the write finished.</p>
+        <p>The issue lay in a synchronous database client called from async handlers. They usually took seconds to finish, that blocked the event loop for their whole duration. The service couldn't answer the liveness probe until the write finished.</p>
 
-        <p>We'd been making those same calls on Lambda for years. Each concurrent delivery had its own environment, so waiting for the database didn't hold up the others. Once deliveries shared an event loop in the service, they all had to wait.</p>
+        <p>We'd been making those same calls on Lambda since the beginning. Each concurrent delivery had its own environment, so waiting for the database didn't hold up the others. Once deliveries shared an event loop in the service, they all had to wait.</p>
 
-        <p>We moved the database writes to a thread pool and stopped seeing the restarts. CSV parsing and pandas resampling were also running on the loop, so we moved those to threads too. Async code is only as async as its slowest sync call.</p>
+        <p>We offloaded those database writes to a thread pool and stopped seeing the restarts. The same applied to CSV parsing and pandas resampling. Async code is only as async as its slowest sync call.</p>
 
-        <p>When reviewing the handlers, follow the calls into the database drivers and SDKs as well, especially those without async versions. For testing, leave the liveness probes enabled and run the service under load. Enabling asyncio debug mode also helps here. By default, it logs callbacks and task steps that take longer than 100 ms, giving you somewhere to start looking.</p>
+        <p>To spot sync dependencies proactively, check your database drivers and network-bound SDKs as well. For testing, run the service under load. Enabling asyncio debug mode also helps here. By default, it logs callbacks and task steps that take longer than 100 ms, giving you somewhere to start looking.</p>
 
         <h2 id="promise-2-every-delivery-had-the-place-to-itself">Promise 2: Every delivery had the place to itself</h2>
 
@@ -100,7 +100,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>All our Python consumers were configured the same way: same pod count, same processes per pod, same prefetch count per process (we use RabbitMQ). We set concurrency to roughly match Lambda's concurrency, and this had worked for the first consumer.</p>
 
-        <p>However, isolation didn't transfer. On Lambda, each concurrent invocation had its own memory budget. In the service, all deliveries in a pod share the pod's memory limit. The second consumer did much more work per delivery than the first. It had more bytes in flight with larger pandas dataframes and more database calls. Under regular traffic, the queue stayed short and the prefetch never filled. The DLQ replay filled it instantly, and the pod ran out of memory before any of the deliveries finished. The fix from Promise 1 made this easier to hit: with blocking calls off the event loop, each process could run more of this work at the same time.</p>
+        <p>However, isolation didn't transfer. On Lambda, each concurrent invocation had its own memory budget. In the service, all deliveries in a pod share the pod's memory limit. The second consumer did much more work per delivery than the first. It had more bytes in flight with larger pandas dataframes and more database calls. Under normal traffic, the prefetch never filled. The DLQ replay filled it instantly, and the pod ran out of memory. There is also quite an interesting relation to the fix from Promise 1. It made this easier to hit: with blocking calls off the event loop, each process could run more of this work at the same time.</p>
 
         <p>To size prefetch, you need the peak additional memory one large delivery uses. Lambda's REPORT line includes Max Memory Used, but when invocations share an environment, it reports the maximum across all of them. So use a large delivery that ran first in a fresh environment (its REPORT line includes Init Duration), and subtract the function's memory right after init, which you can log at the end of the init code. Use this number, not the function's configured memory size, which is only a ceiling, and be sure to validate it in the service under load.</p>
 
@@ -150,7 +150,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>Restarting the pod is the immediate fix since it fetched the current credentials. We then added a background task to refresh them while the service was running. Our Lambdas didn't live for this long to expose the problem.</p>
 
-        <p>Before migration, review whether the code creates new engines, clients and sessions on every delivery when it could reuse them. I'd also check what happens when credentials, tokens, signed URLs or certificates expire while the service is still running.</p>
+        <p>Before the migration, analyze whether the code creates new engines, clients and sessions on every delivery when it could reuse them. Ask what happens when credentials, tokens, signed URLs or certificates expire while the service is still running.</p>
 
         <p>I'd also look at memory usage across repeated invocations in one Lambda environment. If <code>Max Memory Used</code> keeps climbing, it's worth finding out why before leaving that code running for days.</p>
 
@@ -162,23 +162,23 @@ const WhatLambdaWasHiding = () => {
 
         <p>We tried moving customers back and forth between Lambda and the service, and found the errors appeared only once more than half were on the service. Lambda didn't show any errors at any split.</p>
 
-        <p>When we looked at the code, the client created a new <code>aiohttp.ClientSession</code> for every call:</p>
+        <p>When we looked at the code, the client created a new <code>aiohttp.ClientSession</code> for every call, with no shared connection limit across calls:</p>
 
         <pre><code className="language-python" dangerouslySetInnerHTML={{ __html: Prism.highlight("async with aiohttp.ClientSession() as session:\n    async with session.post(url, json=payload) as resp:\n        ...", Prism.languages.python, 'python') }} /></pre>
 
-        <p>Each call opened a fresh connection, with no shared pool to reuse connections or limit their number. We first suspected we were opening too many. We switched to one <code>ClientSession</code> per process, with a pool limited to 25 connections, and added retries with backoff. Both changes shipped together, and the errors stopped.</p>
+        <p>We first suspected we were opening too many. We switched to one <code>ClientSession</code> per process, with a pool limited to 25 connections, and added retries with backoff. Both changes shipped together, and the errors stopped.</p>
 
-        <p>The pool change went in before we moved the blocking calls to threads. Looking at the upstream configuration afterwards, our best explanation is that the event-loop blocking also affected how quickly we sent requests. The upstream was a Go <code>net/http</code> server with a 10-second <code>ReadHeaderTimeout</code>. A TCP connection could be established while the client’s event loop was busy with other deliveries. If those deliveries kept it busy for more than 10 seconds before it could send the headers, the upstream would close the connection.</p>
+        <p>The pool change went in before we moved the blocking calls to threads. Looking at the upstream configuration afterwards, our best explanation is that the event-loop blocking also affected how quickly we sent requests. The upstream was a Go <code>net/http</code> server with a 10-second <code>ReadHeaderTimeout</code>. We would establish a TCP connection while the client’s event loop was busy with other deliveries. If those deliveries kept it busy for more than 10 seconds before it could send the headers, the upstream would close the connection.</p>
 
-        <p>The timing changes when a connection is reused. On an idle HTTP/1 connection, Go doesn’t start the header timeout until the first bytes of the next request arrive. So a delay before sending anything doesn’t eat into that timeout the way it would on a new connection. You can see this in <a href="https://go.dev/src/net/http/server.go" target="_blank" rel="noopener noreferrer">Go’s server implementation</a>.</p>
+        <p>How is this not an issue with the shared pool? Well, connections stay around for reuse. On an idle HTTP/1 connection, Go doesn’t start the header timeout until the first bytes of the next request arrive. So a delay before sending anything doesn’t go into that timeout the way it would on a new connection. You can see this in <a href="https://go.dev/src/net/http/server.go" target="_blank" rel="noopener noreferrer">Go’s server implementation</a>.</p>
 
-        <p>I reproduced this locally against a Go server, using a shorter, two-second timeout. Blocking the loop for three seconds after connecting caused a disconnect; reusing an established connection after the same delay succeeded. A local load test also produced failures with a session per call and none with a shared session. We haven't confirmed that this was the cause in production, but it fits the configuration and the behaviour we observed.</p>
+        <p>After the fact, I reproduced this locally against a Go server, using a shorter, two-second timeout. Blocking the loop for three seconds after connecting caused a disconnect, but reusing an established connection after the same delay succeeded. A local load test also produced failures with a session per call and none with a shared session. We didn't confirm back then that this was the cause in production, but it fits the configuration and the behaviour we observed.</p>
 
-        <p>The retries let us recover from transient failures without repeating the whole delivery. That was safe here because the call was a read-only search.</p>
+        <p>You could also implicitly rely on Lambda's retries without knowing it. If your network call has no retries, you still rely on Lambda retrying your whole request again. Ensure you add retries to recover from transient failures without repeating the whole delivery.</p>
 
-        <p>Before migrating, check whether HTTP clients reuse connections, what limits their pools have and when the upstream starts its timeouts. Test the HTTP calls as part of the full handler, with the concurrency you expect in production. Also check whether the network path or source addresses will change, especially if the upstream uses per-IP limits or allowlists.</p>
+        <p>So check whether HTTP clients reuse connections, what limits their pools have and when the upstream starts its timeouts. Ideally, test it with the concurrency you expect in production. Also check whether the network path or source addresses will change, especially if the upstream uses per-IP limits or allowlists.</p>
 
-        <p>Also check your Lambda logs for deliveries that failed but eventually succeeded when Lambda retried the invocation. The service won't give you that by default, so if you relied on it, add retries where the call is made.</p>
+        <p>Also check Lambda logs for deliveries that failed but eventually succeeded when Lambda retried the invocation. The service won't give you that by default, so if you relied on it, add retries where the call is made.</p>
 
         <h2 id="how-to-make-it-reliable">How to make it reliable</h2>
 
@@ -194,7 +194,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>For credentials that rotate periodically, trigger a rotation during the test and check that the service can open new connections afterwards. Also check reconnecting after an existing connection is lost.</p>
 
-        <p>For upstream services, try slow responses, timeouts and failed calls. You can use something like Shopify's Toxiproxy for this. It sits between the service and a dependency, allowing you to add latency or cut connections during a test. A pod killed during a delivery is another useful case, especially after it has written to a database but before it has acknowledged the message. Check what gets repeated on the next attempt and whether the result is still correct.</p>
+        <p>For upstream services, try slow responses, timeouts and failed calls. You can use something like <a href="https://github.com/shopify/toxiproxy" target="_blank" rel="noopener noreferrer">Shopify's Toxiproxy</a> for this. It sits between the service and a dependency, allowing you to add latency or cut connections during a test. A pod killed during a delivery is another useful case, especially after it has written to a database but before it has acknowledged the message. Check what gets repeated on the next attempt and whether the result is still correct.</p>
 
         <p>For the rollout, shadowing lets you send a copy of real traffic to the new system while the old one is also running. You can compare their outputs before relying on the new system, but it means twice as much work. For consumers like ours, which write to databases, we would also need new databases. Providing this infrastructure surely involves more coordination and hence more time, as well as more cost.</p>
 
