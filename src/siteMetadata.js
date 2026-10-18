@@ -3,7 +3,7 @@ export const siteUrl = 'https://www.denyszhak.com';
 export const routeMetadata = [
   {
     path: '/',
-    title: 'Denys Zhak | Software Engineer',
+    title: 'Denys Zhak',
     description: 'Software engineer working on distributed systems, production reliability, and ML infrastructure. Writing and open-source work by Denys Zhak.',
     image: '/photo.jpg',
     imageAlt: 'Denys Zhak',
