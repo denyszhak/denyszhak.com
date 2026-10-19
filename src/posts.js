@@ -20,7 +20,7 @@ export const posts = [
   },
   {
     date: '2026-07-07',
-    title: 'Runtime Promises, Part 1 - What AWS Lambda Was Hiding',
+    title: 'Runtime Semantics, Part 1 - What AWS Lambda Was Hiding',
     slug: 'what-aws-lambda-was-hiding',
     category: 'work',
     tags: ['distributed systems', 'serverless'],
