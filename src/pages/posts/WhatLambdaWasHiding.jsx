@@ -124,7 +124,7 @@ const WhatLambdaWasHiding = () => {
 
         <h2 id="promise-3-nothing-lived-long-enough-to-go-bad">Promise 3: Nothing lived long enough to go bad</h2>
 
-        <p>A Lambda execution environment is short-lived. As noted earlier, it can be reused, but even in this case, it's recycled every few hours. It's the complete opposite in a service, where a process stays running unless deployments or crashes intervene. You might have scheduled rotation, but it's nothing close to how Lambda operates.</p>
+        <p>A Lambda execution environment is short-lived. As noted earlier, it can be reused, but in our case it was gone before a process that stays up for days would have shown the problem. It's the complete opposite in a service, where a process stays running unless deployments or crashes intervene. You might have scheduled rotation, but it's nothing close to how Lambda operates.</p>
 
         <p>Some time into testing, we noticed memory growing steadily across the pods. While a pod stayed running, its memory usage kept climbing rather than settling at a stable baseline.</p>
 
@@ -134,11 +134,13 @@ const WhatLambdaWasHiding = () => {
 
         <p>At first sight, this didn't seem like a big problem, since they all disposed of their engines at the end.</p>
 
-        <p><code>tracemalloc</code> pointed at SQLAlchemy early on. We replayed 51 deliveries against the old version, and they created a bit more than 1,000 engines. None of them were alive after garbage collection, but the process still held about 485 MiB of resident memory (RSS). glibc, the C library that allocates memory for our process, reported only 54 MiB in use. Another 169 MiB was free, but glibc hadn't returned it to Linux. When we called <code>malloc_trim()</code> to give free pages back, RSS dropped by 151 MiB.</p>
+        <p><code>tracemalloc</code>&nbsp;pointed at SQLAlchemy. Our library created several engines per delivery and disposed of them at the end. None were left after garbage collection, but resident memory stayed high.</p>
 
-        <p>It wasn't a leak but heap fragmentation, sometimes called memory bloat. Each new engine allocated memory and freed it after, but some memory still stayed in the process for reuse instead of going back to Linux. As more deliveries came in, some needed more than the free slots could cover, so glibc took more from Linux and the growth pattern continued. Limiting glibc to a single arena didn't change this.</p>
+        <p>glibc, the C library that allocates memory for the process, kept some of the freed blocks for reuse. There was free memory, but some later allocations needed a size that did not fit those holes. glibc had to get more from Linux.</p>
 
-        <p>After we switched to one engine per process, memory grew much more slowly and stayed below the 4 GiB request between restarts. We still want to track down the growth that remains. If you can't remove the churn at the source, a common workaround in Python is to recycle processes instead of pods. Gunicorn has <code>max_requests</code>, Celery has <code>worker_max_tasks_per_child</code> and <code>worker_max_memory_per_child</code>, and Python has <code>ProcessPoolExecutor(max_tasks_per_child=...)</code>, all for exactly this purpose.</p>
+        <p><code>malloc_trim()</code>&nbsp;could give the empty end of the heap back to Linux, but not the unused space on a page that still held a live allocation. We also tried a single glibc arena, but memory kept climbing.</p>
+
+        <p>After we switched to one engine per worker, that removed the biggest source of churn for our traffic. If you can't remove the churn at the source, a common workaround in Python is to recycle processes instead of pods. Gunicorn has <code>max_requests</code>, Celery has <code>worker_max_tasks_per_child</code> and <code>worker_max_memory_per_child</code>, and Python has <code>ProcessPoolExecutor(max_tasks_per_child=...)</code>, all for exactly this purpose.</p>
 
         <p>Even though it wasn't a visible problem on Lambda, the code shouldn't have created several engines per delivery. The engine should have been created outside the handler so it could be reused. Even on Lambda, every new engine meant new connections, each with a new TCP handshake and authentication.</p>
 
