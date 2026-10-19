@@ -72,7 +72,7 @@ const WhatLambdaWasHiding = () => {
 
         <h2 id="promise-1-blocking-only-hurt-the-caller">Promise 1: Blocking only hurt the caller</h2>
 
-        <p>Each Lambda invocation runs in its own execution environment. Concurrent requests never share one.</p>
+        <p>On Lambda each concurrent delivery had its own execution environment.<sup id="footnote-ref-1"><a href="#footnote-1" role="doc-noteref" aria-label="Footnote 1">1</a></sup> In the service, the deliveries in a process share one event loop.</p>
 
         <p>We have four different types of consumers, and by the time we finished the rollout of the first, we were somewhat confident that the second wouldn't give us much trouble.</p>
 
@@ -84,7 +84,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>The issue lay in a synchronous database client called from async handlers. Client calls usually took seconds to finish and blocked the event loop for their whole duration. The service couldn't answer the liveness probe until the write finished.</p>
 
-        <p>On Lambda those same calls were fine: each delivery had its own environment, so a slow database write only blocked itself. Once deliveries shared an event loop, they all had to wait.</p>
+        <p>On Lambda those same calls were fine: concurrent deliveries ran in separate environments, so a slow database write only blocked its own delivery. Once deliveries shared an event loop, they all had to wait.</p>
 
         <p>We offloaded those database writes to a thread pool and stopped seeing the restarts. The same applied to CSV parsing and pandas resampling. Async code is only as async as its slowest sync call.</p>
 
@@ -156,7 +156,7 @@ const WhatLambdaWasHiding = () => {
 
         <h2 id="promise-4-the-outside-world-saw-a-different-you">Promise 4: The outside world saw a different you</h2>
 
-        <p>Our code barely changed in the migration, so it's easy to consider that you are the same client for the upstream services. On Lambda, in our setup, the calls to upstream came from at least three source addresses, and if a call failed, Lambda retried the whole invocation. After the migration, the same calls came from a couple of pods running many deliveries at once, and retries were up to us.</p>
+        <p>Our code barely changed in the migration, so it's easy to assume you’re the same client for the upstream services. On Lambda, in our setup, the calls to upstream came from at least three source addresses, and if a call failed, Lambda retried the whole invocation. After the migration, the same calls came from a couple of pods running many deliveries at once, and retries were up to us.</p>
 
         <p>While moving customers over, calls to one of our internal services started failing with <code>ServerDisconnectedError</code>, signalling that the connection closed before we got a response. Our first thought was to add retries, because these looked like occasional disconnects.</p>
 
@@ -186,7 +186,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>Our memory problem took one to two days to show up, so a few hours in staging wouldn't have been enough. Leave the service running with traffic comparable to prod and watch its memory and error logs over time. How long to do this depends on the workflow and how expensive a failure would be to recover from.</p>
 
-        <p>A good thing is to also test what happens at the boundaries: queues, databases, upstream services and anything providing credentials. For queues, it can be a DLQ replay. Don't wait until you need a production replay to find out whether the service can handle it.</p>
+        <p>Also test what happens at the boundaries: queues, databases, upstream services and anything providing credentials. For queues, it can be a DLQ replay. Don't wait until you need a production replay to find out whether the service can handle it.</p>
 
         <p>For credentials that rotate periodically, trigger a rotation during the test and check that the service can open new connections afterwards. Also check reconnecting after an existing connection is lost.</p>
 
@@ -281,6 +281,10 @@ const WhatLambdaWasHiding = () => {
           <li>Cognitive load. We had seven Lambdas and an orchestration between them, and tracing what happened to one event took more effort than the actual work the system was doing. New devs couldn't catch up quickly and required more time to internalize the system.</li>
           <li>Non-functional bottlenecks. The data grew, and for some functionality, Lambda's cap of 15 minutes wasn't enough. We found ourselves trying to work around that, and although it was possible, we didn't want to think about non-functional limits like this.</li>
         </ul>
+
+        <div style={{ marginTop: '3rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+          <p id="footnote-1" role="doc-footnote"><a href="#footnote-ref-1" aria-label="Back to footnote reference 1">1.</a>{' '}Throughout this post, Lambda means its default compute type. <a href="https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-runtimes.html" target="_blank" rel="noopener noreferrer">Lambda Managed Instances</a> can run several invocations in one environment at once, so some of these promises don't hold there.</p>
+        </div>
 
         <SubscribeForm />
 
