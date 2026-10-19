@@ -140,13 +140,15 @@ const WhatLambdaWasHiding = () => {
 
         <p><code>malloc_trim()</code>&nbsp;could give the empty end of the heap back to Linux, but not the unused space on a page that still held a live allocation. We also tried a single glibc arena, but memory kept climbing.</p>
 
-        <p>After we switched to one engine per worker, that removed the biggest source of churn for our traffic. If you can't remove the churn at the source, a common workaround in Python is to recycle processes instead of pods. Gunicorn has <code>max_requests</code>, Celery has <code>worker_max_tasks_per_child</code> and <code>worker_max_memory_per_child</code>, and Python has <code>ProcessPoolExecutor(max_tasks_per_child=...)</code>, all for exactly this purpose.</p>
+        <p>After we switched to one engine per worker, that removed the biggest source of memory growth for our traffic. If you can't remove the churn at the source, a common workaround in Python is to recycle processes instead of pods. Gunicorn has <code>max_requests</code>, Celery has <code>worker_max_tasks_per_child</code> and <code>worker_max_memory_per_child</code>, and Python has <code>ProcessPoolExecutor(max_tasks_per_child=...)</code>, all for exactly this purpose.</p>
 
         <p>Even though it wasn't a visible problem on Lambda, the code shouldn't have created several engines per delivery. The engine should have been created outside the handler so it could be reused. Even on Lambda, every new engine meant new connections, each with a new TCP handshake and authentication.</p>
 
+        <p>The memory issue is not simply a bad pattern. It can have practical implications. Imagine you have memory-based autoscaling configured. You would see pods coming up, and new pods would only reinforce that pattern.</p>
+
         <p>We also had a consumer that started failing intermittently when writing to a database. Some deliveries synced fine, while others failed with authentication errors.</p>
 
-        <p>The credentials came from Vault and rotated monthly. We fetched them at startup but never refreshed. After a rotation, the service was still trying to open connections with the old credentials.</p>
+        <p>The credentials came from Vault and rotated monthly. We fetched them at startup but never refreshed. After a rotation, the service was still trying to open connections with the old credentials. The pattern was intermittent because old connections in the DB pool didn't have to authenticate, but new connections did.</p>
 
         <p>We called these credentials "static" to distinguish them from the short-lived ones. We'd already added periodic refresh for the short-lived credentials by that time, but overlooked the static ones. Of course they were also rotated, a month was just much longer than anything we tested.</p>
 
@@ -154,7 +156,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>Before the migration, analyze whether the code creates new engines, clients and sessions on every delivery when it could reuse them. Ask what happens when credentials, tokens, signed URLs or certificates expire while the service is still running.</p>
 
-        <p>I'd also look at memory usage across repeated invocations in one Lambda environment. If <code>Max Memory Used</code> keeps climbing, it's worth finding out why before leaving that code running for days.</p>
+        <p>I'd also log memory at the start of each invocation and follow one Lambda log stream. If that number keeps growing, it's worth finding out why before leaving that code running for days.</p>
 
         <h2 id="promise-4-the-outside-world-saw-a-different-you">Promise 4: The outside world saw a different you</h2>
 
