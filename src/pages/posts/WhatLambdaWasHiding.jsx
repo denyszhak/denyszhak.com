@@ -126,9 +126,9 @@ const WhatLambdaWasHiding = () => {
 
         <p>A Lambda execution environment is short-lived. As noted earlier, it can be reused, but even in this case, it's recycled every few hours. It's the complete opposite in a service, where a process stays running unless deployments or crashes intervene. You might have scheduled rotation, but it's nothing close to how Lambda operates.</p>
 
-        <p>Some time into testing, we noticed premature restarts. Over one to two days, memory climbed toward the pod's 4 GiB memory limit until the pods were restarted.</p>
+        <p>Some time into testing, we noticed memory growing steadily across the pods. While a pod stayed running, its memory usage kept climbing rather than settling at a stable baseline.</p>
 
-        <div style={{ margin: '2rem 0', textAlign: 'center' }}><img src="/sqlalchemy-cache-leak.png" alt="Pod memory growing toward the 4 GiB limit over one to two days, with a separate line for each replica" style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', border: '1px solid var(--border-color)' }} /></div>
+        <div style={{ margin: '2rem 0', textAlign: 'center' }}><img src="/sqlalchemy-cache-leak.png" alt="" style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', border: '1px solid var(--border-color)' }} /></div>
 
         <p>The first Lambda we migrated created a SQLAlchemy engine per request instead of reusing one across invocations. We corrected that during the migration but missed similar calls inside our internal library, which created several engines on every delivery.</p>
 
@@ -138,7 +138,7 @@ const WhatLambdaWasHiding = () => {
 
         <p>It wasn't a leak but heap fragmentation, sometimes called memory bloat. Each new engine allocated memory and freed it after, but some memory still stayed in the process for reuse instead of going back to Linux. As more deliveries came in, some needed more than the free slots could cover, so glibc took more from Linux and the growth pattern continued. Limiting glibc to a single arena didn't change this.</p>
 
-        <p>After we switched to a global engine, memory grew at a much slower rate, and we no longer saw the restarts between routine deploys. At that rate, our pods get restarted long before they could get anywhere near the limit, but we still want to track down what's left. If you can't remove the churn at the source, a common workaround in Python is to recycle processes instead of pods. Gunicorn has <code>max_requests</code>, Celery has <code>worker_max_tasks_per_child</code> and <code>worker_max_memory_per_child</code>, and Python has <code>ProcessPoolExecutor(max_tasks_per_child=...)</code>, all for exactly this purpose.</p>
+        <p>After we switched to one engine per process, memory grew much more slowly and stayed below the 4 GiB request between restarts. We still want to track down the growth that remains. If you can't remove the churn at the source, a common workaround in Python is to recycle processes instead of pods. Gunicorn has <code>max_requests</code>, Celery has <code>worker_max_tasks_per_child</code> and <code>worker_max_memory_per_child</code>, and Python has <code>ProcessPoolExecutor(max_tasks_per_child=...)</code>, all for exactly this purpose.</p>
 
         <p>Even though it wasn't a visible problem on Lambda, the code shouldn't have created several engines per delivery. The engine should have been created outside the handler so it could be reused. Even on Lambda, every new engine meant new connections, each with a new TCP handshake and authentication.</p>
 
