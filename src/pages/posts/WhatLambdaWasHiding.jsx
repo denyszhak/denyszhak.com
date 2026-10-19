@@ -14,7 +14,7 @@ const WhatLambdaWasHiding = () => {
 
       <article className="article-content">
         <header className="article-header">
-          <h1 className="article-title">Runtime Semantics, Part 1 - What AWS Lambda Was Hiding</h1>
+          <h1 className="article-title">Runtime Promises - What AWS Lambda Was Hiding</h1>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
             <div style={{ display: 'flex', gap: '0.4rem' }}>
               <span className="post-tag">distributed systems</span>

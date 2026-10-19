@@ -21,7 +21,7 @@ export const routeMetadata = [
   },
   {
     path: '/writing/what-aws-lambda-was-hiding',
-    title: 'Runtime Semantics, Part 1 - What AWS Lambda Was Hiding | Denys Zhak',
+    title: 'Runtime Promises - What AWS Lambda Was Hiding | Denys Zhak',
     description: 'Four runtime promises exposed by moving seven Python ingestion Lambdas into services on Kubernetes, with checks for making the migration reliable.',
     image: '/lambda-migration-oom.png',
     imageAlt: 'Memory usage during a dead-letter queue replay after migrating from AWS Lambda',
