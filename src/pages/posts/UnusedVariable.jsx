@@ -70,7 +70,7 @@ const UnusedVariable = () => {
 
         <p>Each of the cases needed its own treatment, which was a lot of code for something ty mostly knew already.</p>
 
-        <p>Instead, the merged version goes over the definitions ty already knows about and filters them by kind.</p>
+        <p>Instead, the final merged version goes over the definitions that ty already knew about.</p>
 
         <p>Annotations, like <code>x: int</code>, only declare a type, so you can only tell they're unused if <a href="https://github.com/astral-sh/ruff/pull/24811" target="_blank" rel="noopener noreferrer">no one reads them in the scope at all</a>.</p>
 
@@ -96,7 +96,7 @@ const UnusedVariable = () => {
 
         <p>When ty sees <code>x</code> inside <code>inner</code>, it has to figure out which <code>x</code> it is. In this case it's the <code>x = 1</code> from <code>outer</code>, so that binding in <code>outer</code> gets marked as used.</p>
 
-        <p>With <code>nonlocal</code> it's a bit different. It tells Python that <code>x</code> in <code>mid</code> is not a new local variable, so assignments there go to <code>outer</code>'s <code>x</code>.</p>
+        <p>Python also has <code>nonlocal</code>, which tells that <code>x</code> in <code>mid</code> is not a new local variable, so assignments there go to <code>outer</code>'s <code>x</code>.</p>
 
         <pre><code className="language-python">{"def outer():\n    x = 1\n\n    def mid():\n        nonlocal x\n        x = 2\n\n        def inner():\n            return x\n\n        return inner\n\n    return mid"}</code></pre>
 
@@ -110,13 +110,13 @@ const UnusedVariable = () => {
 
         <p>Here <code>i</code> is read inside the comprehension, which is two scopes away from the parameter in <code>outer</code>, so ty has to go through both before the parameter counts as used.</p>
 
-        <p>ty reaches <code>return x</code> before it has finished processing <code>middle</code>:</p>
+        <p>The tricky part is that when you see a read, you don't always know its scope yet.</p>
 
         <pre><code className="language-python">{"def outer():\n    x = 0\n\n    def middle():\n        def inner():\n            return x\n\n        x = 1\n        return inner\n\n    return middle"}</code></pre>
 
-        <p>Further down, <code>x = 1</code> makes <code>x</code> local to <code>middle</code>. Once ty has seen all of <code>middle</code>, it can connect <code>inner</code>'s read to <code>x = 1</code>. Nothing reads <code>outer</code>'s <code>x = 0</code>.</p>
+        <p>You can only tell which names are local by looking at the whole function body, so the <code>x = 1</code> that comes later still makes <code>x</code> local to <code>middle</code>. That means <code>inner</code> captures <code>middle</code>'s <code>x</code>, and <code>x = 0</code> in <code>outer</code> is really unused.</p>
 
-        <p>At the end of each scope, ty checks the reads it couldn't resolve earlier. If the name is local, it marks the binding as used. Otherwise, it passes the read to the parent.</p>
+        <p>That's why ty resolves captures after finishing a scope. Reads it can't resolve go to the parent and keep moving up the hierarchy until ty reaches a finished scope that owns the name and can mark its binding as used.</p>
 
         <h2>Unused doesn't mean removable</h2>
 
