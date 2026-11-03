@@ -47,6 +47,15 @@ export const routeMetadata = [
     twitterCard: 'summary_large_image',
   },
   {
+    path: '/talks',
+    title: 'Talks | Denys Zhak',
+    description: 'Conference talks by Denys Zhak, with slides: what AWS Lambda was hiding, from SREday Amsterdam 2026.',
+    image: '/photo.jpg',
+    imageAlt: 'Denys Zhak',
+    type: 'website',
+    twitterCard: 'summary',
+  },
+  {
     path: '/open-source',
     title: 'Open source | Denys Zhak',
     description: "Open-source work by Denys Zhak across Astral's ty and Ruff, Docker Model Runner, GPU inference backends, and developer tooling.",

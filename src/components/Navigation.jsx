@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 const pages = [
   { path: '/', label: 'about' },
   { path: '/writing', label: 'writing' },
+  { path: '/talks', label: 'talks' },
   { path: '/open-source', label: 'open source' },
 ];
 

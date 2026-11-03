@@ -177,6 +177,49 @@ button {
   color: var(--text-tagline);
 }
 
+.talk-title {
+  color: var(--text-heading);
+}
+
+.talk-links {
+  margin-top: 0.35rem;
+}
+
+.talk-table {
+  width: 100%;
+}
+
+.post-table.talk-table td:last-child {
+  padding-right: 0;
+}
+
+.talk {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.talk-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.talk-thumb {
+  flex: none;
+  width: 200px;
+}
+
+.talk-thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border-color);
+}
+
+.talk-thumb:hover img {
+  border-color: var(--text-secondary);
+}
+
 .post-tags {
   display: flex;
   flex-wrap: wrap;
@@ -512,5 +555,15 @@ button {
 
   .subscribe-form {
     flex-direction: column;
+  }
+
+  .talk {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .talk-thumb {
+    width: 100%;
+    max-width: 320px;
   }
 }
