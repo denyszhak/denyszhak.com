@@ -19,9 +19,11 @@ const Talks = () => {
                 <div className="talk">
                   <div className="talk-info">
                     <span className="talk-title">{talk.title}</span>
-                    <div className="post-tagline">
-                      <ExternalLink href={talk.eventUrl}>{talk.event}</ExternalLink>
-                    </div>
+                    {talk.events.map((event) => (
+                      <div key={event.url} className="post-tagline">
+                        <ExternalLink href={event.url}>{event.name}</ExternalLink>
+                      </div>
+                    ))}
                     <div className="talk-links">
                       <ExternalLink href={talk.slidesUrl}>slides (pdf)</ExternalLink>
                       <span className="nav-separator"> · </span>
